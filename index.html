@@ -18,9 +18,9 @@
         .split-row div { flex: 1; }
         .split-row label { margin-top: 0; font-size: 0.8em; color: #666; }
 
-        .slider-container { display: flex; align-items: center; margin-top: 8px; gap: 15px; }
+        .slider-container { display: flex; align-items: center; margin-top: 8px; gap: 10px; }
         input[type="range"] { flex-grow: 1; accent-color: #0277bd; }
-        .slider-value { font-weight: bold; min-width: 100px; text-align: right; color: #0277bd; }
+        .slider-value { font-weight: bold; min-width: 55px; text-align: right; color: #0277bd; }
         
         .result-box { margin-top: 30px; padding: 20px; border-radius: 10px; text-align: center; background: #fafafa; border: 1px solid #eee; }
         .level-text { font-size: 1.5em; font-weight: 800; margin: 15px 0 5px 0; color: #333; transition: color 0.4s; }
@@ -99,24 +99,38 @@
     <label>Classroom Settings</label>
     <div class="split-row">
         <div>
-            <label>Weekly Lessons (45 minutes)</label>
+            <label>Weekly Lessons (45 min)</label>
             <input type="number" id="classLessons" value="4" min="0" max="15" oninput="calculate()">
         </div>
         <div>
             <label>Efficiency</label>
             <select id="efficiencyLevel" onchange="calculate()">
-                <option value="0.8">S</option>
-                <option value="0.5" selected>A</option>
-                <option value="0.25">B</option>
-                <option value="0.10">C</option>
+                <option value="0.50">S</option>
+                <option value="0.35" selected>A</option>
+                <option value="0.15">B</option>
+                <option value="0.05">C</option>
             </select>
         </div>
     </div>
 
-    <label>Daily Active Study (Minutes)</label>
-    <div class="slider-container">
-        <input type="range" id="dailyStudy" value="0" min="0" max="60" step="5" oninput="calculate()">
-        <div class="slider-value" id="sliderValue">0 min/day</div>
+    <label>Self-Study Settings</label>
+    <div class="split-row">
+        <div>
+            <label>Daily Minutes</label>
+            <div class="slider-container">
+                <input type="range" id="dailyStudy" value="0" min="0" max="60" step="5" oninput="calculate()">
+                <div class="slider-value" id="sliderValue">0 min</div>
+            </div>
+        </div>
+        <div>
+            <label>Efficiency</label>
+            <select id="selfEfficiencyLevel" onchange="calculate()">
+                <option value="0.9">S</option>
+                <option value="0.75" selected>A</option>
+                <option value="0.5">B</option>
+                <option value="0.2">C</option>
+            </select>
+        </div>
     </div>
 </div>
 
@@ -140,10 +154,12 @@
     function calculate() {
         let currentHrs = parseInt(document.getElementById('currentLevel').value);
         let classLessons = parseInt(document.getElementById('classLessons').value) || 0;
-        let efficiency = parseFloat(document.getElementById('efficiencyLevel').value);
+        let classEfficiency = parseFloat(document.getElementById('efficiencyLevel').value);
+        
         let dailyMins = parseInt(document.getElementById('dailyStudy').value);
+        let selfEfficiency = parseFloat(document.getElementById('selfEfficiencyLevel').value);
 
-        document.getElementById('sliderValue').innerText = dailyMins + " min/day";
+        document.getElementById('sliderValue').innerText = dailyMins + " min";
 
         // Date calculations
         let startDate = new Date(document.getElementById('startDate').value);
@@ -175,9 +191,9 @@
         // Scale the 35 school weeks proportionally to the selected time period
         let activeWeeks = (totalDays / 365) * 35;
         
-        // Apply the efficiency multiplier only to the classroom hours
-        let periodClassHrs = ((classLessons * 45 / 60) * activeWeeks) * efficiency;
-        let periodSelfHrs = (dailyMins * totalDays) / 60;
+        // Apply efficiency multipliers to both class and self-study hours
+        let periodClassHrs = ((classLessons * 45 / 60) * activeWeeks) * classEfficiency;
+        let periodSelfHrs = ((dailyMins * totalDays) / 60) * selfEfficiency;
         
         let totalHrs = Math.round(currentHrs + periodClassHrs + periodSelfHrs);
 
