@@ -8,11 +8,15 @@
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
         h1 { font-size: 1.4em; margin-top: 0; margin-bottom: 20px; text-align: center; }
         label { font-weight: 600; display: block; margin-top: 20px; font-size: 0.9em; }
+        
+        /* New style for the dynamic duration text */
+        .duration-text { color: #0277bd; font-weight: bold; margin-left: 8px; font-size: 0.9em; }
+        
         select, input[type="number"], input[type="date"] { width: 100%; padding: 10px; margin-top: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; }
         
-        .date-container { display: flex; gap: 15px; margin-top: 8px; }
-        .date-container div { flex: 1; }
-        .date-container label { margin-top: 0; font-size: 0.8em; color: #666; }
+        .split-row { display: flex; gap: 15px; margin-top: 8px; }
+        .split-row div { flex: 1; }
+        .split-row label { margin-top: 0; font-size: 0.8em; color: #666; }
 
         .slider-container { display: flex; align-items: center; margin-top: 8px; gap: 15px; }
         input[type="range"] { flex-grow: 1; accent-color: #0277bd; }
@@ -41,7 +45,7 @@
 
 <div class="card">   
     <div class="result-box">
- <div class="level-text" id="levelOut">Beginner (Pre-A1)</div>
+        <div class="level-text" id="levelOut">Beginner (Pre-A1)</div>
         <div class="progress-wrapper">
             <div class="progress-fill" id="progressFill"></div>
             
@@ -67,6 +71,7 @@
             <div class="marker end" style="left: 100%;">1<span>C1</span></div>
         </div>
     </div>
+
     <label>Current Eiken Level</label>
     <select id="currentLevel" onchange="calculate()">
         <option value="0">Beginner (No Eiken / 0 hrs)</option>
@@ -79,8 +84,8 @@
         <option value="600">Eiken Grade Pre-1 (~600 hrs)</option>
     </select>
 
-    <label>Time Period</label>
-    <div class="date-container">
+    <label>Time Period <span id="timeDuration" class="duration-text"></span></label>
+    <div class="split-row">
         <div>
             <label>Start Date</label>
             <input type="date" id="startDate" onchange="calculate()">
@@ -91,16 +96,28 @@
         </div>
     </div>
 
-    <label>Weekly Class Lessons (45 min each)</label>
-    <input type="number" id="classLessons" value="4" min="0" max="15" oninput="calculate()">
+    <label>Classroom Settings</label>
+    <div class="split-row">
+        <div>
+            <label>Weekly Lessons</label>
+            <input type="number" id="classLessons" value="4" min="0" max="15" oninput="calculate()">
+        </div>
+        <div>
+            <label>Efficiency</label>
+            <select id="efficiencyLevel" onchange="calculate()">
+                <option value="0.8">S</option>
+                <option value="0.5" selected>A</option>
+                <option value="0.25">B</option>
+                <option value="0.10">C</option>
+            </select>
+        </div>
+    </div>
 
     <label>Daily Active Study (Minutes)</label>
     <div class="slider-container">
         <input type="range" id="dailyStudy" value="0" min="0" max="60" step="5" oninput="calculate()">
         <div class="slider-value" id="sliderValue">0 min/day</div>
     </div>
-
-
 </div>
 
 <script>
@@ -123,6 +140,7 @@
     function calculate() {
         let currentHrs = parseInt(document.getElementById('currentLevel').value);
         let classLessons = parseInt(document.getElementById('classLessons').value) || 0;
+        let efficiency = parseFloat(document.getElementById('efficiencyLevel').value);
         let dailyMins = parseInt(document.getElementById('dailyStudy').value);
 
         document.getElementById('sliderValue').innerText = dailyMins + " min/day";
@@ -134,12 +152,31 @@
         // Prevent negative days if they select an end date before the start date
         let diffTime = endDate - startDate;
         let totalDays = diffTime > 0 ? diffTime / (1000 * 60 * 60 * 24) : 0;
+        
+        // Calculate years and months for display
+        let totalMonths = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth());
+        if (endDate.getDate() < startDate.getDate()) {
+            totalMonths--;
+        }
+        
+        if (totalMonths > 0) {
+            let years = Math.floor(totalMonths / 12);
+            let months = totalMonths % 12;
+            let durationStr = "";
+            if (years > 0) durationStr += years + "y ";
+            if (months > 0 || years === 0) durationStr += months + "m";
+            document.getElementById('timeDuration').innerText = "(" + durationStr.trim() + ")";
+        } else if (diffTime > 0) {
+            document.getElementById('timeDuration').innerText = "(< 1m)";
+        } else {
+            document.getElementById('timeDuration').innerText = "(0m)";
+        }
 
         // Scale the 35 school weeks proportionally to the selected time period
-        // (If the period is 365 days, it equals 35 weeks. If it's half a year, it's 17.5 weeks.)
         let activeWeeks = (totalDays / 365) * 35;
         
-        let periodClassHrs = (classLessons * 45 / 60) * activeWeeks;
+        // Apply the efficiency multiplier only to the classroom hours
+        let periodClassHrs = ((classLessons * 45 / 60) * activeWeeks) * efficiency;
         let periodSelfHrs = (dailyMins * totalDays) / 60;
         
         let totalHrs = Math.round(currentHrs + periodClassHrs + periodSelfHrs);
