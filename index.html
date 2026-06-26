@@ -105,10 +105,10 @@
         <div>
             <label>Efficiency</label>
             <select id="efficiencyLevel" onchange="calculate()">
-                <option value="0.8">S</option>
-                <option value="0.5" selected>A</option>
-                <option value="0.25">B</option>
-                <option value="0.10">C</option>
+                <option value="0.5">S</option>
+                <option value="0.35" selected>A</option>
+                <option value="0.20">B</option>
+                <option value="0.05">C</option>
             </select>
         </div>
     </div>
@@ -172,12 +172,12 @@
             document.getElementById('timeDuration').innerText = "(0m)";
         }
 
-        // Scale the 35 school weeks proportionally to the selected time period
-        let activeWeeks = (totalDays / 365) * 35;
+        // Scale the 40 school weeks proportionally to the selected time period
+        let activeWeeks = (totalDays / 365) * 40;
         
         // Apply the efficiency multiplier only to the classroom hours
         let periodClassHrs = ((classLessons * 45 / 60) * activeWeeks) * efficiency;
-        let periodSelfHrs = (dailyMins * totalDays) / 60;
+        let periodSelfHrs = ((dailyMins * totalDays) / 60)*0.5;
         
         let totalHrs = Math.round(currentHrs + periodClassHrs + periodSelfHrs);
 
