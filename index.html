@@ -105,10 +105,10 @@
         <div>
             <label>Efficiency</label>
             <select id="efficiencyLevel" onchange="calculate()">
-                <option value="0.5">S</option>
-                <option value="0.35" selected>A</option>
-                <option value="0.20">B</option>
-                <option value="0.05">C</option>
+                <option value="0.8">S</option>     // .5
+                <option value="0.55" selected>A</option>// .35
+                <option value="0.35">B</option>// .2
+                <option value="0.1">C</option>// .05
             </select>
         </div>
     </div>
@@ -177,7 +177,7 @@
         
         // Apply the efficiency multiplier only to the classroom hours
         let periodClassHrs = ((classLessons * 45 / 60) * activeWeeks) * efficiency;
-        let periodSelfHrs = ((dailyMins * totalDays) / 60)*0.5;
+        let periodSelfHrs = ((dailyMins * totalDays) / 60)*0.9;
         
         let totalHrs = Math.round(currentHrs + periodClassHrs + periodSelfHrs);
 
